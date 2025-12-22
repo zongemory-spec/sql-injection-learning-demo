@@ -40,21 +40,10 @@ const App: React.FC = () => {
   };
 
   const quickExploit = (payload: string) => {
+    // 现在点击后只填充表单，不直接登入
     setUsername(payload);
     setPassword('');
     setError('');
-    // 自动触发登录以演示
-    setTimeout(() => {
-        const result = executeVulnerableLogin(payload, '');
-        setLastQuery(result.executedQuery);
-        if (result.success) {
-            setCurrentUser(result.rows[0]);
-            setView(SecurityView.DASHBOARD);
-            fetchArchiveData(result.rows[0].role);
-        } else {
-            setError(result.error || '失败');
-        }
-    }, 500);
   };
 
   const logout = () => {
@@ -152,10 +141,10 @@ const App: React.FC = () => {
                   </div>
 
                   {error && (
-                    <div className="p-4 rounded bg-red-950/30 border border-red-500/50 text-red-400 text-xs flex items-start gap-3 animate-bounce">
+                    <div className="p-4 rounded bg-red-950/30 border border-red-500/50 text-red-400 text-xs flex items-start gap-3 animate-pulse">
                       <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                       <div className="space-y-1">
-                        <p className="font-bold">拦截到错误！</p>
+                        <p className="font-bold">状态反馈</p>
                         <p className="opacity-80">{error}</p>
                       </div>
                     </div>
@@ -181,6 +170,7 @@ const App: React.FC = () => {
                       <code className="text-xs text-orange-400 group-hover:text-orange-300">admin' -- </code>
                     </button>
                   </div>
+                  <p className="text-[10px] text-zinc-600 italic">提示：点击载荷后，输入框将自动填充，请点击“登录系统”以观察结果。</p>
                 </div>
               </div>
             </div>
@@ -225,7 +215,7 @@ const App: React.FC = () => {
                       {lastQuery}
                     </div>
                     <p className="text-[10px] text-zinc-500 italic">
-                      由于 <span className="text-emerald-500">OR '1'='1'</span> 永远成立，数据库在验证身份时直接跳过了密码比对。
+                      由于输入中包含 SQL 关键词，原本的指令结构被破坏。
                     </p>
                   </div>
                 </div>
@@ -283,9 +273,6 @@ const App: React.FC = () => {
                   <div className="bg-black p-4 rounded text-xs mono text-emerald-400 mb-4">
                     SELECT * FROM users WHERE username = '' OR <span className="underline italic text-white">'1'='1'</span> -- 
                   </div>
-                  <p className="text-xs text-zinc-500 bg-emerald-500/5 p-3 rounded border border-emerald-500/20 italic">
-                    因为 <code className="text-white">'1'='1'</code> 永远成立，数据库会直接返回表中的第一行数据（通常是 Admin）。
-                  </p>
                 </section>
 
                 <section className="bg-zinc-950 p-6 rounded-lg border border-zinc-800">
@@ -296,9 +283,6 @@ const App: React.FC = () => {
                     如果你知道用户名（如 <code className="text-white">admin</code>），可以使用 <code className="text-orange-400">admin' -- </code> 
                     将后面的密码校验语句全部变成“注释”，从而直接登录。
                   </p>
-                  <div className="bg-black p-4 rounded text-xs mono text-zinc-500">
-                    SELECT * FROM users WHERE username = 'admin' <span className="opacity-20 line-through">-- ' AND password = '...'</span>
-                  </div>
                 </section>
               </div>
 
@@ -334,16 +318,10 @@ const App: React.FC = () => {
 
           <div className="bg-red-950/20 border border-red-900/30 rounded-xl p-6">
             <h3 className="text-red-500 font-bold text-sm mb-3 flex items-center gap-2 uppercase tracking-tighter">
-              <Shield className="w-4 h-4" /> 如何修复这个漏洞？
+              <Shield className="w-4 h-4" /> 漏洞防御建议
             </h3>
             <p className="text-zinc-400 text-xs leading-relaxed mb-4">
-              开发者绝对不能直接拼接 SQL 字符串。正确做法是使用 <strong>参数化查询 (Prepared Statements)</strong>：
-            </p>
-            <div className="bg-black/50 p-3 rounded mono text-[9px] text-zinc-500">
-              db.query("SELECT * FROM users WHERE user = ?", [userInput]);
-            </div>
-            <p className="text-zinc-500 text-[9px] mt-4 italic">
-              这样输入的数据只会被当作纯文本处理，永远无法改变 SQL 指令的逻辑。
+              开发者应避免拼接 SQL 字符串，使用 <strong>参数化查询 (Prepared Statements)</strong>。
             </p>
           </div>
         </aside>
@@ -354,12 +332,6 @@ const App: React.FC = () => {
             <p className="text-[10px] mono text-zinc-600 uppercase tracking-widest">
               SecLab Aegis © 2025 | Cybersecurity Educational Tool
             </p>
-            <div className="flex gap-4">
-                <div className="flex items-center gap-2 text-[10px] text-emerald-500/50 mono">
-                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                    DATABASE_CONNECTED
-                </div>
-            </div>
         </div>
       </footer>
     </div>
