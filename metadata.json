@@ -1,0 +1,6 @@
+
+{
+  "name": "The Vault - SQLi Security Lab",
+  "description": "An educational simulation of a vulnerable 'Vault' login system belonging to a mysterious underground archive. It demonstrates real-world SQL injection vulnerabilities and provides a hands-on laboratory to learn about backend security flaws.",
+  "requestFramePermissions": []
+}
