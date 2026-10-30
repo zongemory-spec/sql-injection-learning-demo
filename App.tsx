@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Lock, Shield, Terminal, Database, ChevronRight, AlertTriangle, Eye, EyeOff, BookOpen, Ghost, Zap, Bug, Radio, Cpu, FileText } from 'lucide-react';
 import { User, SecurityView, ArchiveDocument } from './types';
 import { executeVulnerableLogin } from './database';
-import { getSecretArchiveContent } from './services/geminiService';
+import { getDemoArchiveContent } from './services/archiveService';
 
 const App: React.FC = () => {
   const [view, setView] = useState<SecurityView>(SecurityView.LOGIN);
@@ -14,6 +14,7 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [archiveDocs, setArchiveDocs] = useState<ArchiveDocument[]>([]);
   const [loading, setLoading] = useState(false);
+  const [simulation, setSimulation] = useState<'normal' | 'tautology' | 'comment'>('normal');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = (e?: React.FormEvent) => {
@@ -24,6 +25,7 @@ const App: React.FC = () => {
     setLastQuery(result.executedQuery);
 
     if (result.success && result.rows.length > 0) {
+      setSimulation(result.simulation ?? 'normal');
       setCurrentUser(result.rows[0]);
       setView(SecurityView.DASHBOARD);
       fetchArchiveData(result.rows[0].role);
@@ -34,7 +36,7 @@ const App: React.FC = () => {
 
   const fetchArchiveData = async (role: string) => {
     setLoading(true);
-    const docs = await getSecretArchiveContent(role);
+    const docs = await getDemoArchiveContent(role);
     setArchiveDocs(docs);
     setLoading(false);
   };
@@ -74,7 +76,7 @@ const App: React.FC = () => {
               </h1>
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                <p className="text-[9px] mono text-emerald-500/70 uppercase tracking-[0.2em]">加密节点：已连接</p>
+                <p className="text-[9px] mono text-emerald-500/70 uppercase tracking-[0.2em]">合成数据 · 本地教学演示</p>
               </div>
             </div>
           </div>
@@ -191,14 +193,14 @@ const App: React.FC = () => {
               {/* 成功入侵的横幅 */}
               <div className="bg-emerald-950/20 border border-emerald-500/30 p-8 rounded-xl flex flex-col sm:flex-row items-center gap-8 backdrop-blur-md relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-2 bg-emerald-500 text-black text-[10px] font-black uppercase transform rotate-45 translate-x-10 -translate-y-2 w-40 text-center shadow-2xl">
-                  SYSTEM BREACHED
+                  {simulation === 'normal' ? 'DEMO LOGIN ACCEPTED' : 'SIMULATED BYPASS'}
                 </div>
                 <div className="bg-emerald-500/10 p-5 rounded-full border border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
                   <Ghost className="w-12 h-12 text-emerald-400 animate-pulse" />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-1">
-                    身份已克隆: <span className="text-emerald-500">{currentUser.username}</span>
+                    {simulation === 'normal' ? '模拟登录成功:' : '模拟绕过成功:'} <span className="text-emerald-500">{currentUser.username}</span>
                   </h2>
                   <div className="flex flex-wrap justify-center sm:justify-start gap-4">
                     <p className="text-emerald-400/80 text-[10px] mono uppercase tracking-widest flex items-center gap-2">
@@ -225,23 +227,27 @@ const App: React.FC = () => {
 
                 <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-6 flex flex-col">
                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-red-500" /> 攻击矢量分析
+                    <AlertTriangle className="w-4 h-4 text-red-500" /> 本次查询分析
                   </h3>
                   <div className="flex-1 space-y-4">
                     <div className="space-y-2">
-                      <p className="text-[10px] text-zinc-500 uppercase font-bold">注入的 SQL 语句：</p>
+                      <p className="text-[10px] text-zinc-500 uppercase font-bold">拼接后的 SQL 语句：</p>
                       <div className="p-3 bg-black/80 rounded mono text-[11px] text-red-400 break-all border border-red-900/20 leading-tight">
                         {lastQuery}
                       </div>
                     </div>
                     <p className="text-[11px] text-zinc-400 italic bg-red-950/10 p-3 rounded border border-red-900/20 leading-relaxed">
-                      由于代码直接将输入拼接到字符串中，攻击者通过关闭单引号并添加 <span className="text-emerald-500">OR '1'='1'</span>，强制使查询逻辑始终返回“真”，从而绕过了所有的密码校验。
+                      {simulation === 'normal'
+                        ? '本次使用匹配的演示账号和密码，模拟正常登录，没有触发注入规则。'
+                        : simulation === 'comment'
+                          ? '本次输入命中了注释截断模拟规则，演示用户输入可能改变拼接语句的含义；没有执行真实 SQL。'
+                          : '本次输入命中了恒真式模拟规则，演示用户输入可能改变拼接语句的含义；没有执行真实 SQL。'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* AI 生成的动态档案 */}
+              {/* 本地虚构档案 */}
               <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
                 <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/60 backdrop-blur-sm">
                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -355,12 +361,12 @@ const App: React.FC = () => {
                   <span className="text-emerald-500 font-bold">待命 (STANDBY)</span>
                 </div>
                 <div className="flex justify-between items-center text-zinc-500">
-                  <span>网络延迟:</span>
-                  <span>24ms</span>
+                  <span>数据来源:</span>
+                  <span>本地合成</span>
                 </div>
                 <div className="flex justify-between items-center text-zinc-500">
-                  <span>检测阻断:</span>
-                  <span className="text-emerald-500">已绕过</span>
+                  <span>执行方式:</span>
+                  <span className="text-emerald-500">规则模拟</span>
                 </div>
               </div>
             </div>
@@ -402,7 +408,7 @@ const App: React.FC = () => {
               <p className="text-[10px] mono text-zinc-600 uppercase tracking-[0.4em] mb-1">
                 Aegis_Global_Security_Infrastructure_v7.4
               </p>
-              <p className="text-[8px] text-zinc-800 mono uppercase">Encrypted Communication Protocol Enabled</p>
+              <p className="text-[8px] text-zinc-800 mono uppercase">Local teaching simulator · No database connection</p>
             </div>
             <div className="flex gap-6 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all">
                <Shield className="w-5 h-5 text-emerald-500" />

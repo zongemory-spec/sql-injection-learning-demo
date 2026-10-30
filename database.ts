@@ -31,6 +31,7 @@ export const executeVulnerableLogin = (username: string, password: string): SQLQ
   if (alwaysTruePattern.test(lowerUsername) || alwaysTruePattern.test(lowerPassword)) {
     return {
       success: true,
+      simulation: 'tautology',
       rows: MOCK_USERS, // 返回所有用户，模拟 SELECT * 绕过了 WHERE 过滤
       executedQuery: query
     };
@@ -44,6 +45,7 @@ export const executeVulnerableLogin = (username: string, password: string): SQLQ
     if (found || targetUser === "") {
       return {
         success: true,
+        simulation: 'comment',
         rows: found ? [found] : [MOCK_USERS[0]],
         executedQuery: query
       };
@@ -67,6 +69,7 @@ export const executeVulnerableLogin = (username: string, password: string): SQLQ
   if (user) {
     return {
       success: true,
+      simulation: 'normal',
       rows: [user],
       executedQuery: query
     };

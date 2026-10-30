@@ -11,6 +11,7 @@ export interface SQLQueryResult {
   rows: User[];
   executedQuery: string;
   error?: string;
+  simulation?: "normal" | "tautology" | "comment";
 }
 
 export enum SecurityView {
